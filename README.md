@@ -22,9 +22,9 @@ Before you start, you need to have the following installed on your system:
 - **npm** (Node Package Manager)
 - A modern browser (Chrome, Firefox, etc.)
 
-## Running A SERVER:
-1. **Cloud Deployment Section**: Added instructions for deploying the app using platforms like Render, which makes the application accessible online and from any device.
-2. **Steps for Cloud Deployment**: Detailed steps to push to GitHub, set up a web service on Render, and deploy the app online, making it accessible globally.
+## Cloud Deployment Section
+1. 
+2. **Steps for Cloud Deployment**: push to GitHub, set up a web service on Render, and deploy the app online, making it accessible globally.
 
 Let me know if you need further modifications!
 
