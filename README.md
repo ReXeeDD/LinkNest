@@ -28,7 +28,7 @@ Before you start, you need to have the following installed on your system:
 
 Let me know if you need further modifications!
 
-**Start the Server Locally**
+## Start the Server Locally
 
    To start the server on your local machine, use PM2, a process manager for Node.js applications:
 
