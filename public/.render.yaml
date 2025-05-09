@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: p2p-share
+    env: node
+    buildCommand: yarn install
+    startCommand: pm2 start server.js --name p2p-share
