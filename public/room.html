@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>P2P Room</title>
+  <style>
+    body { max-width: 800px; margin: 0 auto; padding: 20px; font-family: Arial; }
+    #room-header { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+    #chat { border: 1px solid #ddd; padding: 20px; height: 400px; overflow-y: auto; }
+    .message { margin: 10px 0; padding: 10px; border-radius: 5px; }
+    .you { background: #e3f2fd; text-align: right; }
+    .file-link { color: #1a73e8; cursor: pointer; text-decoration: underline; }
+    .controls { margin-top: 20px; display: flex; gap: 10px; }
+    input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; }
+    button { padding: 10px 20px; background: #4285f4; color: white; border: none; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div id="room-header">
+    <h2>Room ID: <span id="roomId"></span></h2>
+    <button onclick="copyLink()">Copy Room Link</button>
+  </div>
+  
+  <div id="chat"></div>
+  
+  <div class="controls">
+    <input type="text" id="messageInput" placeholder="Type your message...">
+    <input type="file" id="fileInput">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="clearChat()">Clear Chat</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/simple-peer@latest/simplepeer.min.js"></script>
+  <script>
+    const socket = io();
+    const params = new URLSearchParams(window.location.search);
+    const roomId = params.get('room').toLowerCase();
+    let peers = {};
+
+    // Initialize room
+    document.getElementById('roomId').textContent = roomId;
+    socket.emit('join-room', roomId);
+
+    // WebRTC Connections
+    socket.on('user-joined', userId => {
+      if (userId === socket.id) return;
+      
+      const peer = new SimplePeer({ 
+        initiator: true,
+        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+      });
+      
+      peers[userId] = peer;
+
+      peer.on('signal', signal => {
+        socket.emit('signal', { to: userId, signal });
+      });
+
+      peer.on('data', handleData);
+    });
+
+    socket.on('signal', data => {
+      if (!peers[data.from]) {
+        const peer = new SimplePeer({
+          config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+        });
+        
+        peers[data.from] = peer;
+
+        peer.on('signal', signal => {
+          socket.emit('signal', { to: data.from, signal });
+        });
+
+        peer.on('data', handleData);
+      }
+      peers[data.from].signal(data.signal);
+    });
+
+    // File Handling
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const fileData = {
+          type: 'file',
+          name: file.name,
+          mime: file.type,
+          data: reader.result.split(',')[1]
+        };
+
+        Object.values(peers).forEach(peer => {
+          peer.send(JSON.stringify(fileData));
+        });
+
+        addMessage(`You sent: ${file.name}`, true);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Message Handling
+    function sendMessage() {
+      const message = document.getElementById('messageInput').value.trim();
+      if (!message) return;
+
+      Object.values(peers).forEach(peer => peer.send(message));
+      addMessage(`You: ${message}`, true);
+      document.getElementById('messageInput').value = '';
+    }
+
+    function handleData(data) {
+      try {
+        const decoded = JSON.parse(data);
+        if (decoded.type === 'file') {
+          const link = document.createElement('a');
+          link.className = 'file-link';
+          link.href = `data:${decoded.mime};base64,${decoded.data}`;
+          link.download = decoded.name;
+          link.textContent = `Download ${decoded.name}`;
+          addMessageElement(link);
+        } else {
+          addMessage(`Peer: ${data}`);
+        }
+      } catch {
+        addMessage(`Peer: ${data}`);
+      }
+    }
+
+    function addMessage(text, isYou = false) {
+      const div = document.createElement('div');
+      div.className = `message ${isYou ? 'you' : ''}`;
+      div.textContent = text;
+      document.getElementById('chat').appendChild(div);
+      scrollToBottom();
+    }
+
+    function addMessageElement(element) {
+      const div = document.createElement('div');
+      div.className = 'message';
+      div.appendChild(element);
+      document.getElementById('chat').appendChild(div);
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      const chat = document.getElementById('chat');
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function clearChat() {
+      document.getElementById('chat').innerHTML = '';
+    }
+
+    function copyLink() {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Room link copied to clipboard!');
+    }
+  </script>
+</body>
+</html>

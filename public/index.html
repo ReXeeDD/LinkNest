@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P2P Share</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 40px;
+      text-align: center;
+    }
+    .options {
+      margin: 40px 0;
+    }
+    button {
+      background: #4285f4;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #3367d6;
+    }
+    input {
+      padding: 12px;
+      width: 200px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin: 10px;
+    }
+    h1 {
+      color: #4285f4;
+    }
+  </style>
+</head>
+<body>
+  <h1>P2P File Sharing</h1>
+  <p>Share files directly between devices</p>
+  
+  <div class="options">
+    <button onclick="createRoom()">Create New Room</button>
+    <p>or</p>
+    <input type="text" id="roomIdInput" placeholder="Enter Room ID">
+    <button onclick="joinRoom()">Join Existing Room</button>
+  </div>
+
+  <script>
+    function createRoom() {
+      window.location.href = '/create-room';
+    }
+
+    function joinRoom() {
+      const roomId = document.getElementById('roomIdInput').value.trim();
+      if (/^[a-f0-9]{8}$/i.test(roomId)) {
+        window.location.href = `/room.html?room=${roomId.toLowerCase()}`;
+      } else {
+        alert('Please enter a valid 8-character Room ID (letters a-f, numbers 0-9)');
+      }
+    }
+
+    // Auto-focus input field
+    document.getElementById('roomIdInput').focus();
+  </script>
+</body>
+</html>

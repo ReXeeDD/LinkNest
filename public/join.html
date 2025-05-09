@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Join Room</title>
+  <style>
+    body { max-width: 500px; margin: 50px auto; text-align: center; font-family: Arial; }
+    input { padding: 12px; width: 200px; margin: 15px; border: 1px solid #ddd; }
+    button { padding: 12px 25px; background: #1a73e8; color: white; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Join Existing Room</h1>
+  <input type="text" id="roomId" placeholder="Enter 8-character Room ID">
+  <button onclick="joinRoom()">Join Room</button>
+
+  <script>
+    function joinRoom() {
+      const roomId = document.getElementById('roomId').value.trim().toLowerCase();
+      if (/^[a-f0-9]{8}$/.test(roomId)) {
+        window.location.href = `/room.html?room=${roomId}`;
+      } else {
+        alert('Invalid Room ID!\nMust be 8 characters (0-9, a-f)');
+      }
+    }
+  </script>
+</body>
+</html>
